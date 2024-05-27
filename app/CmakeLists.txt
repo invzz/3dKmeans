@@ -1,0 +1,13 @@
+cmake_minimum_required(VERSION 3.29)
+
+project(3draylib-app)
+
+include_directories(inc)
+
+find_package(raylib CONFIG REQUIRED)
+
+add_executable(3draylib-app src/main.c)
+target_link_libraries(3draylib-app PRIVATE raylib)
+
+add_compile_definitions(-DRES_DIR="${RES_DIR}")
+message(STATUS "RES_DIR: ${RES_DIR}")

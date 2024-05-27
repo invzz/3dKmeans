@@ -1,0 +1,21 @@
+
+cmake_minimum_required(VERSION 3.29)
+include(cmake/automate-vcpkg.cmake)
+
+set(SRC ./src/)
+set(INC ./inc/)
+
+include_directories(${INC})
+vcpkg_bootstrap()
+vcpkg_integrate_install()
+
+project(3draylib)
+include(cmake/init.cmake)
+include(cmake/folders.cmake)
+include(cmake/compiler.cmake)
+include(cmake/targets.cmake)
+
+message(STATUS "vcpkg is set to : ${VCPKG_TARGET_TRIPLET}")
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/dist/${CMAKE_BUILD_TYPE})
+
+

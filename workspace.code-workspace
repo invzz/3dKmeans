@@ -1,0 +1,187 @@
+{
+	"folders": [
+		{
+			"name": "root",
+			"path": "./"
+		},
+	],
+	"settings": {
+		"cmake.cmakePath": "cmake",
+		"explorer.sortOrder": "type",
+		"cmake.clearOutputBeforeBuild": true,
+		"cmake.loggingLevel": "info",
+		"notebook.output.fontFamily": "Fira Code",
+		"notebook.output.fontSize": 10,
+		"notebook.output.lineHeight": 1,
+		"C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+		"C_Cpp.clang_format_style": "file:${workspaceFolder}/.clang-format",
+		"cmake.useCMakePresets": "never",
+		"C_Cpp.intelliSenseEngineFallback": "disabled",
+		"editor.formatOnType": true,
+		"output.smartScroll.enabled": true,
+		"cmake.outputLogEncoding": "build :: ",
+		"terminal.integrated.lineHeight": 1,
+		"terminal.integrated.fontFamily": "Fira Code",
+		"terminal.integrated.fontSize": 10,
+		"terminal.integrated.fontWeight": 500,
+		"editor.fontFamily": "Fira Code",
+		"editor.fontLigatures": true,
+		"editor.fontSize": 12,
+		"editor.fontWeight": "450",
+		"editor.formatOnSave": true,
+		"debug.console.fontFamily": "Fira Code",
+		"debug.console.fontSize": 10,
+		"explorer.excludeGitIgnore": true,
+		"files.exclude": {
+			"**/.git": true,
+			"**/.svn": true,
+			"**/.hg": true,
+			"**/CVS": true,
+			"**/.DS_Store": true,
+			"**/Thumbs.db": true,
+			"**/vcpkg": true
+		},
+		"[Log]": {
+			"editor.fontFamily": "Fira Code",
+			"editor.fontLigatures": true,
+			"editor.formatOnSave": true,
+			"editor.fontSize": 10,
+		},
+		// "cmake.configureSettings": {
+		// 	"CMAKE_TOOLCHAIN_FILE": "C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+		// },
+		"editor.tokenColorCustomizations": {
+			"comments": "#627264",
+			"textMateRules": [
+				{
+					"scope": "markup.other.log.error",
+					"settings": {
+						"foreground": "#FF0000"
+					}
+				},
+				{
+					"scope": "markup.other.log.warn",
+					"settings": {
+						"foreground": "#e7f700cc"
+					}
+				},
+				{
+					"scope": "markup.other.log.info",
+					"settings": {
+						"foreground": "#2cd3c5"
+					}
+				},
+				{
+					"scope": "markup.other.log.debug",
+					"settings": {
+						"foreground": "#4e8c54"
+					}
+				},
+				{
+					"scope": "markup.other.log.highlight",
+					"settings": {
+						"foreground": "#19ff04"
+					}
+				},
+				{
+					"scope": "entity.name.function.preprocessor",
+					"settings": {
+						"foreground": "#B5DFCA",
+						"fontStyle": ""
+					}
+				},
+				{
+					"scope": "string.quoted.double",
+					"settings": {
+						"foreground": "#D4B483",
+						"fontStyle": ""
+					}
+				},
+				{
+					"scope": "variable.parameter",
+					"settings": {
+						"foreground": "#FF9d70",
+						"fontStyle": "italic"
+					}
+				},
+				{
+					"scope": "entity.name.function",
+					"settings": {
+						"foreground": "#DCDDF9",
+						"fontStyle": "bold"
+					}
+				},
+				{
+					"scope": "entity.name.type",
+					"settings": {
+						"foreground": "#9EB7E5",
+						"fontStyle": "bold"
+					}
+				},
+				{
+					"scope": "keyword.control",
+					"settings": {
+						"foreground": "#FF729F",
+						"fontStyle": "bold"
+					}
+				},
+				{
+					"scope": "variable.other.global",
+					"settings": {
+						"foreground": "#8CFF98",
+						"fontStyle": "italic"
+					}
+				},
+				{
+					"scope": "variable.other.local",
+					"settings": {
+						"foreground": "#EEF5DB",
+						"fontStyle": ""
+					}
+				}
+			]
+		},
+		"workbench.colorCustomizations": {
+			"titleBar.border": "#393934",
+			"tab.border": "#393934",
+			"panel.border": "#393934",
+			"sideBar.border": "#393934",
+			"activityBar.border": "#393934",
+			"statusBar.border": "#393934",
+			"editorGroup.border": "#393934",
+			"editorGroupHeader.tabsBorder": "#393934"
+		},
+		"files.associations": {
+			"*.yml": "ansible",
+			"gnv.h": "c",
+			"bigemm.cgi.h": "c",
+			"as400.types.h": "c",
+			"I23BIGSO1.C": "cpp",
+			"windows.h": "c",
+			"bigemm.def.h": "c",
+			"struct2015.h": "c",
+			"bigemm.ext.h": "c",
+			"libstr.h": "c",
+			"*.rh": "c",
+			"bigemm.update.h": "c",
+			"i23_bigget.h": "c",
+			"bigmap.h": "c",
+			"heapalloc.h": "c",
+			"stdio.h": "c",
+			"stdbool.h": "c",
+			"charconv": "c",
+			"bitset": "c",
+			"format": "c",
+			"rbt.h": "c",
+			"stdlib.h": "c",
+			"raylib.h": "c",
+			"compare": "c",
+			"cstddef": "c",
+			"limits": "c",
+			"type_traits": "c",
+			"xmemory": "c",
+			"xutility": "c"
+		},
+		"cmake.options.statusBarVisibility": "visible",
+	}
+}
