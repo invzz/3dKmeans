@@ -1,6 +1,12 @@
 {
     "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+
     "dependencies": [
-        "raylib"
+        {
+            "name": "raylib",
+            "features": ["use-audio", "hidpi"],
+            "default-features": false
+        }
+        
     ]
 }

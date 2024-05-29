@@ -1,13 +1,21 @@
 cmake_minimum_required(VERSION 3.29)
 
+set(APP_NAME 3dKMeans)
+
 project(3draylib-app)
 
 include_directories(inc)
 
 find_package(raylib CONFIG REQUIRED)
 
-add_executable(3draylib-app src/main.c)
-target_link_libraries(3draylib-app PRIVATE raylib)
+add_executable(${APP_NAME} src/main.c)
+add_executable(${APP_NAME}-light src/light.c)
+target_link_libraries(${APP_NAME} PRIVATE raylib m)
+target_link_libraries(${APP_NAME}-light PRIVATE raylib)
+
 
 add_compile_definitions(-DRES_DIR="${RES_DIR}")
+add_compile_definitions(-DAPP_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+add_compile_definitions(-DPLATFORM_DESKTOP)
+
 message(STATUS "RES_DIR: ${RES_DIR}")
