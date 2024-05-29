@@ -180,7 +180,12 @@
 			"limits": "c",
 			"type_traits": "c",
 			"xmemory": "c",
-			"xutility": "c"
+			"xutility": "c",
+			"raymath.h": "c",
+			"float.h": "c",
+			"kmeans.h": "c",
+			"common.h": "c",
+			"COMMON.H": "cpp"
 		},
 		"cmake.options.statusBarVisibility": "visible",
 	}

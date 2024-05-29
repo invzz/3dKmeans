@@ -1,32 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <float.h>
-#include <raylib.h>
-#include <raymath.h>
-#include <rlgl.h>
 #include "main.h" // Ensure main.h contains necessary declarations
-
-#define SAMPLE_SIZE                0.5
-#define MEAN_SIZE                  SAMPLE_SIZE * 2
-#define SAMPLE_COLOR               RED
-#define N                          2 * 1000
-#define K                          12
-#define K_MAX                      256
-#define CAMERA_SPEED               SAMPLE_SIZE *N
-#define COLORS_COUNT               (sizeof(colors) / sizeof(colors[0]))
-#define CAMERA_TRANSITION_DURATION 1.0
-
-// Colors array for clusters
-static Color colors[] = {RED,       GREEN,      BLUE, YELLOW, ORANGE,   VIOLET,    BROWN,    LIGHTGRAY, PINK,   GOLD,    MAGENTA,
-                         DARKGREEN, DARKPURPLE, LIME, BROWN,  DARKBLUE, DARKBROWN, DARKGRAY, MAROON,    PURPLE, RAYWHITE};
-
-typedef struct
-{
-  Vector3 *items;
-  size_t   count;
-  size_t   capacity;
-} Samples3D;
+#include "common.h"
+#define RLIGHTS_IMPLEMENTATION
+#include "rlights.h"
 
 static Samples3D   set                        = {0};
 static Samples3D   cluster[K_MAX]             = {0};
@@ -40,7 +15,6 @@ static float       animation_time             = 0.0f;
 static const float ANIMATION_DURATION         = 0.5f;
 static bool        centroid_selected          = false;
 static int         selected_centroid_index    = -1;
-float              lamda                      = 5;
 static Vector3     camera_start_pos           = {0};
 static Vector3     camera_end_pos             = {0};
 static Vector3     camera_start_target        = {0};
@@ -48,155 +22,46 @@ static Vector3     camera_end_target          = {0};
 static bool        camera_transition          = false;
 static float       camera_transition_time     = 0.0f;
 static float       camera_transition_duration = 2.0f;
+static size_t      current_k                  = 0;
 
-static void generate_cluster(Vector3 center, float radius, size_t count, Samples3D *samples)
-{
-  for(size_t i = 0; i < count; i++)
-    {
-      if(samples->capacity == 0)
-        {
-          samples->capacity = 1;
-          samples->items    = malloc(samples->capacity * sizeof(Vector3));
-        }
-      if(samples->count == samples->capacity)
-        {
-          samples->capacity *= 2;
-          samples->items = realloc(samples->items, samples->capacity * sizeof(Vector3));
-        }
-      float theta                    = GetRandomValue(0, 360) * DEG2RAD;
-      float phi                      = GetRandomValue(0, 360) * DEG2RAD;
-      float r                        = GetRandomValue(0, radius);
-      float x                        = center.x + (r * sinf(theta) * cosf(phi));
-      float y                        = center.y + (r * sinf(theta) * sinf(phi));
-      float z                        = center.z + (r * cosf(theta));
-      samples->items[samples->count] = (Vector3){x, y, z};
-      samples->count++;
-    }
-}
-
-static void randomize_means(size_t k, float bound)
-{
-  for(size_t i = 0; i < k; ++i)
-    {
-      means[i].x        = Lerp(-bound, bound, (float)GetRandomValue(0, 100) / 100);
-      means[i].y        = Lerp(-bound, bound, (float)GetRandomValue(0, 100) / 100);
-      means[i].z        = Lerp(-bound, bound, (float)GetRandomValue(0, 100) / 100);
-      target_means[i]   = means[i];
-      old_means[i]      = means[i];
-      cluster_colors[i] = colors[i % COLORS_COUNT];
-      target_colors[i]  = cluster_colors[i];
-      old_colors[i]     = cluster_colors[i];
-    }
-}
-
-static void generate_new_state(const float cluster_radius, const size_t cluster_count, size_t k)
-{
-  SetRandomSeed(GetRandomValue(0, 10000));
-
-  set.count = 0;
-  float c   = cluster_radius * lamda;
-  for(size_t i = 0; i < k; ++i) { cluster[i].count = 0; }
-
-  for(size_t i = 0; i < k; ++i)
-    {
-      Vector3 center = {
-        .x = Lerp(-c, c, (float)GetRandomValue(0, 100) / 100),
-        .y = Lerp(-c, c, (float)GetRandomValue(0, 100) / 100),
-        .z = Lerp(-c, c, (float)GetRandomValue(0, 100) / 100),
-      };
-      generate_cluster(center, c, N * (float)GetRandomValue(50, 100) / 100, &set);
-    }
-}
-
-static void reset_set(Samples3D *s)
-{
-  if(s->items) free(s->items);
-  s->items    = NULL;
-  s->count    = 0;
-  s->capacity = 0;
-}
-
-static void append_to_cluster(Samples3D *s, Vector3 p)
-{
-  if(s->capacity == 0)
-    {
-      s->capacity = 1;
-      s->items    = malloc(s->capacity * sizeof(Vector3));
-    }
-
-  if(s->count == s->capacity)
-    {
-      s->capacity *= 2;
-      s->items = realloc(s->items, s->capacity * sizeof(Vector3));
-    }
-  s->items[s->count] = p;
-  s->count++;
-}
-
-static void recluster_state(size_t kl)
-{
-  for(int i = 0; i < kl; ++i) { cluster[i].count = 0; }
-
-  for(size_t i = 0; i < set.count; ++i)
-    {
-      Vector3 p = set.items[i];
-      int     k = -1;
-      float   s = FLT_MAX;
-      for(size_t j = 0; j < kl; ++j)
-        {
-          Vector3 m  = target_means[j];
-          float   sm = Vector3Distance(p, m);
-          if(sm < s)
-            {
-              s = sm;
-              k = j;
-            }
-        }
-      append_to_cluster(&cluster[k], p);
-    }
-}
-
-static void update_means(float cluster_radius, size_t cluster_count, size_t k)
-{
-  SetRandomSeed(GetRandomValue(0, 10000));
-  for(size_t i = 0; i < k; ++i)
-    {
-      old_means[i]  = means[i];          // Store old means for animation
-      old_colors[i] = cluster_colors[i]; // Store old colors for animation
-      if(cluster[i].count > 0)
-        {
-          target_means[i] = Vector3Zero();
-          for(size_t j = 0; j < cluster[i].count; ++j) { target_means[i] = Vector3Add(target_means[i], cluster[i].items[j]); }
-          target_means[i].x /= cluster[i].count;
-          target_means[i].y /= cluster[i].count;
-          target_means[i].z /= cluster[i].count;
-          target_colors[i] = colors[i % COLORS_COUNT]; // Assign new color
-        }
-      else
-        {
-          target_means[i].x = Lerp(-cluster_radius * lamda, cluster_radius * lamda, (float)GetRandomValue(0, 100) / 100);
-          target_means[i].y = Lerp(-cluster_radius * lamda, cluster_radius * lamda, (float)GetRandomValue(0, 100) / 100);
-          target_means[i].z = Lerp(-cluster_radius * lamda, cluster_radius * lamda, (float)GetRandomValue(0, 100) / 100);
-          target_colors[i]  = colors[i % COLORS_COUNT]; // Assign new color
-        }
-    }
-  animation_time = 0.0f; // Reset animation time
-}
+static bool isKMeansAnimation = false;
 
 int main()
 {
-  const int   screenWidth    = 1920;
-  const int   screenHeight   = 1080;
+  const int   screenWidth    = 800;
+  const int   screenHeight   = 600;
   const char *title          = "K-means Clustering Visualization";
-  float       cluster_radius = 20;
+  float       cluster_radius = 50;
 
   int k = K;
 
-  SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_FULLSCREEN_MODE );
+  SetConfigFlags(FLAG_MSAA_4X_HINT);
 
   InitWindow(screenWidth, screenHeight, title);
 
-  float camera_magnitude     = cluster_radius * lamda * 4;
+  // Load model
+  Model model = LoadModelFromMesh(GenMeshCube(1, 1, 1));
+
+  // texture the model
+  Texture texture                                       = LoadTexture(TEXTURE_DIR "gold/ao.png");
+  model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
+
+  // shader
+  Shader shader                        = LoadShader(SHADER_DIR "light.vs", SHADER_DIR "light.fs");
+  shader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocation(shader, "matModel");
+  shader.locs[SHADER_LOC_VECTOR_VIEW]  = GetShaderLocation(shader, "viewPos");
+
+  // ambient light level
+  int amb = GetShaderLocation(shader, "ambient");
+  SetShaderValue(shader, amb, (float[4]){0.2, 0.2, 0.2, 1.0}, SHADER_UNIFORM_VEC4);
+
+  // set the models shader
+  model.materials[0].shader = shader;
+
+  // make a light
+  Light light = CreateLight(LIGHT_DIRECTIONAL, (Vector3){2, 2, 0}, Vector3Zero(), WHITE, shader);
+
+  float camera_magnitude     = cluster_radius * 4;
   float camera_magnitude_vel = 0.0f;
   float camera_theta         = 0.5;
   float camera_phi           = 0.5;
@@ -214,11 +79,20 @@ int main()
     .projection = CAMERA_PERSPECTIVE
   };
 
-  bool isKMeansAnimation = false;
   SetTargetFPS(120);
+
+  float       light_rotation_angle = 0.0f; // Initial light rotation angle
+  const float light_rotation_speed = 1.0f; // Speed of light rotation
 
   while(!WindowShouldClose())
     {
+      // Handle key inputs for updating the cluster and camera settings
+      if(IsKeyPressed(KEY_G)) { cluster_radius += 1; }
+      if(IsKeyPressed(KEY_H))
+        {
+          cluster_radius -= 1;
+          if(cluster_radius < 10) cluster_radius = 10;
+        }
       if(IsKeyPressed(KEY_Q))
         {
           k += 1;
@@ -226,13 +100,11 @@ int main()
           if(k > K_MAX) k = K_MAX;
           recluster_state(k);
         }
-
       if(IsKeyPressed(KEY_W))
         {
-          randomize_means(k, cluster_radius * lamda);
+          randomize_means(k, cluster_radius * 2);
           recluster_state(k);
         }
-
       if(IsKeyPressed(KEY_A))
         {
           k -= 1;
@@ -240,20 +112,17 @@ int main()
           if(k < 1) k = 1;
           recluster_state(k);
         }
-
       if(IsKeyPressed(KEY_B))
         {
           centroid_selected       = false;
           selected_centroid_index = -1;
           camera.target           = Vector3Zero();
         }
-
       if(IsKeyPressed(KEY_R))
         {
-          generate_new_state(cluster_radius, N, k);
+          generate_new_state(cluster_radius, k);
           recluster_state(k);
         }
-
       if(IsKeyPressed(KEY_N))
         {
           centroid_selected       = true;
@@ -268,8 +137,8 @@ int main()
                      .y = means[selected_centroid_index].y + sinf(camera_phi) * camera_magnitude,
                      .z = means[selected_centroid_index].z + cosf(camera_theta) * cosf(camera_phi) * camera_magnitude,
           };
+          light.position = means[selected_centroid_index];
         }
-
       if(IsKeyPressed(KEY_SPACE)) { isKMeansAnimation = !isKMeansAnimation; }
 
       float deltaTime = GetFrameTime();
@@ -336,11 +205,19 @@ int main()
           camera_transition = true;
         }
 
+      // Update light position to rotate around its target
+      light_rotation_angle += light_rotation_speed * deltaTime * 10;
+      light.position.x = camera.target.x + (cluster_radius / 2) * cosf(light_rotation_angle);
+      light.position.y = camera.target.y + (cluster_radius / 2) * sinf(light_rotation_angle);
+      light.position.z = camera.target.z + (cluster_radius / 2) * sinf(light_rotation_angle * 0.5f); // Different axis rotation
+
+      UpdateLightValues(shader, light);
+
       BeginDrawing();
       ClearBackground(BLACK);
       BeginMode3D(camera);
 
-      for(size_t i = 0; i < k; i++)
+      for(size_t i = 0; i < current_k; i++)
         {
           for(size_t j = 0; j < cluster[i].count; j++)
             {
@@ -348,30 +225,32 @@ int main()
               if(i == selected_centroid_index)
                 {
                   int size_boost = 4;
-                  DrawCube(p, SAMPLE_SIZE * size_boost, SAMPLE_SIZE * size_boost, SAMPLE_SIZE * size_boost, cluster_colors[i]);
+                  DrawCube(p, 3, 3, 3, cluster_colors[i]);
                   DrawCubeWires(p, SAMPLE_SIZE * size_boost, SAMPLE_SIZE * size_boost, SAMPLE_SIZE * size_boost,
                                 ColorAlphaBlend(cluster_colors[i], BLACK, WHITE));
                 }
               else
-                DrawCubeWires(p, SAMPLE_SIZE, SAMPLE_SIZE, SAMPLE_SIZE, cluster_colors[i]);
+                {
+                  model.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = cluster_colors[i];
+                  DrawCube(p, 3, 3, 3, cluster_colors[i]);
+                }
             }
           if(i == selected_centroid_index)
             {
               DrawSphere(means[i], MEAN_SIZE * 4, WHITE);
-              DrawSphere(means[i], cluster_radius * lamda, ColorAlpha(WHITE, 0.25f));
+              // DrawSphere(means[i], cluster_radius, ColorAlpha(WHITE, 0.25f));
             }
-          else
-            DrawSphere(means[i], MEAN_SIZE * 4, cluster_colors[i]);
+          else { DrawSphere(means[i], MEAN_SIZE * 4, cluster_colors[i]); }
         }
-      if(!centroid_selected)
-        {
-          DrawBoundingBox(
-            (BoundingBox){
-              (Vector3){-cluster_radius * lamda * 2, -cluster_radius * lamda * 2, -cluster_radius * lamda * 2},
-              (Vector3){cluster_radius * lamda * 2,  cluster_radius * lamda * 2,  cluster_radius * lamda * 2 }
-          },
-            WHITE);
-        }
+
+      DrawBoundingBox(
+        (BoundingBox){
+          (Vector3){-cluster_radius * 2, -cluster_radius * 2, -cluster_radius * 2},
+          (Vector3){cluster_radius * 2,  cluster_radius * 2,  cluster_radius * 2 }
+      },
+        WHITE);
+
+      DrawSphere(light.position, 4.0, WHITE);
 
       EndMode3D();
       if(isKMeansAnimation) { DrawText("Press [SPACE] to pause Kmeans ", 10, 10, 20, WHITE); }

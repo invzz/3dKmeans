@@ -8,14 +8,30 @@ include_directories(inc)
 
 find_package(raylib CONFIG REQUIRED)
 
-add_executable(${APP_NAME} src/main.c)
-add_executable(${APP_NAME}-light src/light.c)
-target_link_libraries(${APP_NAME} PRIVATE raylib m)
-target_link_libraries(${APP_NAME}-light PRIVATE raylib)
 
+add_library(kmeans STATIC src/kmeans.c )
+add_library(dh STATIC src/data_handler.c )
+
+add_executable(${APP_NAME}-l src/lightEx.c )
+add_executable(${APP_NAME} 
+    src/main.c 
+)
+
+target_link_libraries(kmeans PRIVATE raylib)
+target_link_libraries(dh PRIVATE raylib)
+
+target_link_libraries(${APP_NAME}-l PRIVATE raylib)
+
+target_link_libraries(${APP_NAME} PRIVATE raylib kmeans dh)
+
+# add_executable(${APP_NAME}-l src/minimal.c inc/pbr.h)
+# target_link_libraries(${APP_NAME}-l PRIVATE raylib)
+# target_link_libraries(${APP_NAME}-l PRIVATE glad::glad)
 
 add_compile_definitions(-DRES_DIR="${RES_DIR}")
 add_compile_definitions(-DAPP_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+add_compile_definitions(-DSHADER_DIR="${CMAKE_CURRENT_SOURCE_DIR}/shaders/")
+add_compile_definitions(-DTEXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/textures/")
 add_compile_definitions(-DPLATFORM_DESKTOP)
 
 message(STATUS "RES_DIR: ${RES_DIR}")
