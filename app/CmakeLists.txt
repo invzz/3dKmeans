@@ -33,5 +33,6 @@ add_compile_definitions(-DAPP_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 add_compile_definitions(-DSHADER_DIR="${CMAKE_CURRENT_SOURCE_DIR}/shaders/")
 add_compile_definitions(-DTEXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/textures/")
 add_compile_definitions(-DPLATFORM_DESKTOP)
+add_compile_definitions(-DUSE_NVIDIA_CARD)
 
 message(STATUS "RES_DIR: ${RES_DIR}")

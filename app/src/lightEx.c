@@ -37,7 +37,7 @@ int main(void)
 {
   // Initialization
   //--------------------------------------------------------------------------------------
-  InitWindow(1280, 720, "raylib [models] example - simple lighting material");
+  InitWindow(1920, 720, "raylib [models] example - simple lighting material");
 
   // Define the camera to look into our 3d world
   Camera camera = {

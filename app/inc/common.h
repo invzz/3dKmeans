@@ -3,7 +3,6 @@
 
 #define GLSL_VERSION 330
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -16,9 +15,9 @@
 #define SAMPLE_SIZE                0.5
 #define MEAN_SIZE                  SAMPLE_SIZE * 2
 #define SAMPLE_COLOR               RED
-#define N                          2 * 1000
-#define K                          12
-#define K_MAX                      256
+#define N                          1000
+#define INITIAL_K                  2
+#define K_MAX                      70
 #define CAMERA_SPEED               SAMPLE_SIZE *N
 #define COLORS_COUNT               (sizeof(colors) / sizeof(colors[0]))
 #define CAMERA_TRANSITION_DURATION 1.0

@@ -185,7 +185,10 @@
 			"float.h": "c",
 			"kmeans.h": "c",
 			"common.h": "c",
-			"COMMON.H": "cpp"
+			"COMMON.H": "cpp",
+			"algorithm": "c",
+			"locale": "c",
+			"optional": "c"
 		},
 		"cmake.options.statusBarVisibility": "visible",
 	}

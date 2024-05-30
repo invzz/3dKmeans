@@ -1,7 +1,7 @@
 
 #include "kmeans.h"
 #include "float.h"
-
+#define C_ALPHA 0.2f
 static void randomize_means(size_t k, float bound)
 {
   for(size_t i = 0; i < k; ++i)
@@ -11,8 +11,8 @@ static void randomize_means(size_t k, float bound)
       means[i].z        = Lerp(-bound, bound, (float)GetRandomValue(0, 100) / 100);
       target_means[i]   = means[i];
       old_means[i]      = means[i];
-      cluster_colors[i] = colors[i % COLORS_COUNT];
-      target_colors[i]  = cluster_colors[i];
+      cluster_colors[i] = ColorAlpha(colors[i % COLORS_COUNT], C_ALPHA);
+      target_colors[i]  = ColorAlpha(cluster_colors[i], C_ALPHA);
       old_colors[i]     = cluster_colors[i];
     }
 }
@@ -25,21 +25,21 @@ static void reset_set(Samples3D *s)
   s->capacity = 0;
 }
 
-static void append_to_cluster(Samples3D *s, Vector3 p)
+static void append_to_cluster(Samples3D *cluster, Vector3 p)
 {
-  if(s->capacity == 0)
+  if(cluster->capacity == 0)
     {
-      s->capacity = 1;
-      s->items    = malloc(s->capacity * sizeof(Vector3));
+      cluster->capacity = 1;
+      cluster->items    = malloc(cluster->capacity * sizeof(Vector3));
     }
 
-  if(s->count == s->capacity)
+  else if(cluster->count == cluster->capacity)
     {
-      s->capacity *= 2;
-      s->items = realloc(s->items, s->capacity * sizeof(Vector3));
+      cluster->items = realloc(cluster->items, cluster->capacity * sizeof(Vector3) * 2);
+      cluster->capacity *= 2;
     }
-  s->items[s->count] = p;
-  s->count++;
+  cluster->items[cluster->count] = p;
+  cluster->count++;
 }
 
 static void recluster_state(size_t kl)
@@ -61,12 +61,12 @@ static void recluster_state(size_t kl)
               k = j;
             }
         }
-      append_to_cluster(&cluster[k], p);
+      if(k != -1) append_to_cluster(&cluster[k], p);
     }
   current_k = kl;
 }
 
-static void update_means(float cluster_radius, size_t cluster_count, size_t k)
+static void update_means(float cluster_radius, size_t k)
 {
   SetRandomSeed(GetRandomValue(0, 10000));
   for(size_t i = 0; i < k; ++i)
